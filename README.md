@@ -1,2 +1,1 @@
-# transfer-learning-template
-The simple pytorch template for transfer learning
+# Character indendent for font identification
