@@ -1,0 +1,7 @@
+model:
+  name: FontIdentification2Flow
+  args:
+    in_dim: 3
+    in_size: 64
+    n_hidden: 1028
+    drop: 0.2

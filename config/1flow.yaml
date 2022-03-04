@@ -1,0 +1,17 @@
+model:
+  name: FontIdentification1Flow
+  args:
+    in_dim: 3
+    in_size: 64
+    n_hidden: 1028
+    drop: 0.2
+optim:
+  lr: 0.001
+  step: 20
+  gamma: 0.1
+
+data:
+  dir_path: ./data/pair_images
+  train_csv: ./data/train.csv
+  val_csv: ./data/val.csv
+  test_csv: ./data/test.csv
