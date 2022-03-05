@@ -2,11 +2,14 @@ from torchvision import transforms as T
 
 to_tensor = T.Compose([
     T.ToTensor(),
-    T.Resize((224, 224)),
-    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    T.Resize((64, 64)),
+    T.Normalize(mean=[0.9, 0.9, 0.9], std=[0.1, 0.1, 0.1]),
 ])
 
+color = T.RandomApply(T.ColorJitter(0, 0, 0, 0), 0.2)
+
 augmenter = T.Compose([
-    T.RandAugment(),
+    color,
+    T.RandomGrayscale(0.2),
     to_tensor
 ])
