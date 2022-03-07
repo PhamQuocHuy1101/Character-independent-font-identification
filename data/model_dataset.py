@@ -7,7 +7,7 @@ class FontDataset(Dataset):
     def __init__(self, image_root, image_1, image_2, label, transform, scale = 1):
         self.image_root = image_root
         self.image_1 = image_1
-        self.image_1 = image_2
+        self.image_2 = image_2
         self.label = label
         self.scale = scale
         self.transform = transform

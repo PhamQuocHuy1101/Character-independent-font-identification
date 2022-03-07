@@ -35,8 +35,8 @@ def train(cf):
     train_df = pd.read_csv(cf.data['train_csv'])
     val_df = pd.read_csv(cf.data['val_csv'])
 
-    train_data = FontDataset(cf.data['dir_path'], train_df.path, train_df.font_label, augmenter)
-    val_data = FontDataset(cf.data['dir_path'], val_df.path, val_df.font_label, to_tensor)
+    train_data = FontDataset(cf.data['dir_path'], train_df.sample_1, train_df.sample_2, train_df.font_label, augmenter)
+    val_data = FontDataset(cf.data['dir_path'], val_df.sample_1, val_df.sample_2, val_df.font_label, to_tensor)
 
     train_loader = DataLoader(train_data, batch_size = cf.optim['batch_size'], shuffle = True)
     val_loader = DataLoader(val_data, batch_size = 8, shuffle = True)
@@ -103,9 +103,10 @@ def train(cf):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Training")
-    parser.add_argument('--config', type=str, help='config file')
-    parser.add_argument('--device', type=str, help='device')
+    parser.add_argument('--config', type=str, required=True, help='config file')
+    parser.add_argument('--device', type=str, required=True, help='device')
     args = parser.parse_args()
-
+    
     cf = utils.Config(args.config)
+    cf.device = args.device
     train(cf)

@@ -1,4 +1,3 @@
-from statistics import mode
 import torch.nn as nn
 from torch.nn import functional
 from torchvision import transforms as T
