@@ -65,7 +65,7 @@ class FontIdentification2Flow(FontIdentification):
         batch_size = X1.shape[0]
         input_X = torch.cat((X1, X2), dim = 0) # (batch*2, channel, h, w)
         output_X = self.backbone(input_X)
-        output_X = output_X.flatten()
+        output_X = output_X.reshape(batch_size * 2, -1)
 
         input_head = torch.cat((output_X[:batch_size], output_X[batch_size:]), dim = -1)
         output = self.head(input_head)
@@ -80,9 +80,10 @@ class FontIdentification1Flow(FontIdentification):
         '''
             X1, X2: (batch, channel, h, w)
         '''
+        batch_size = X1.shape[0]
         input_X = torch.cat((X1, X2), dim = 1) # (batch, channel*2, h, w)
         output_X = self.backbone(input_X)
-        output = self.head(output_X.flatten())
+        output = self.head(output_X.view(batch_size, -1))
         return output
 
     
