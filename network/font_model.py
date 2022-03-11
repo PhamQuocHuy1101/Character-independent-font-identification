@@ -5,20 +5,17 @@ import torch
 import torch.nn as nn
 from torchvision import models
 from .common import Backbone
+from .common import Conv2d
 
 class BaseConv(nn.Module):
     def __init__(self, in_dim):
         super(BaseConv, self).__init__()
         self.net = nn.Sequential(
-            nn.Conv2d(in_dim, 32, kernel_size = 3, stride = 1), # (in_dim, 64) -> (32, 62)
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size = 3, stride = 1), # (32, 62) -> (32, 60)
-            nn.ReLU(),
+            Conv2d(in_dim, 32, kernel_size = 3, stride = 1), # (in_dim, 64) -> (32, 62)
+            Conv2d(32, 32, kernel_size = 3, stride = 1), # (32, 62) -> (32, 60)
             nn.MaxPool2d(kernel_size = 2, stride = 2), # (32, 60) -> (32, 30)
-            nn.Conv2d(32, 64, kernel_size = 3, stride = 1), # (32, 30) -> (64, 38)
-            nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size = 3, stride = 1), # (64, 38) -> (64, 36)
-            nn.ReLU(),
+            Conv2d(32, 64, kernel_size = 3, stride = 1), # (32, 30) -> (64, 38)
+            Conv2d(64, 64, kernel_size = 3, stride = 1), # (64, 38) -> (64, 36)
             nn.MaxPool2d(kernel_size = 2, stride = 2), # (64, 36) -> (64, 18)
         )
     def forward(self, X):
