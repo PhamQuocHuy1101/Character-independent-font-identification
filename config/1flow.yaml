@@ -5,13 +5,17 @@ model:
     in_size: 64
     n_hidden: 1028
     drop: 0.2
+  freeze: False
+  checkpoint: ./checkpoint/model.pt
 optim:
   lr: 0.001
+  batch_size: 32
   step: 20
   gamma: 0.1
-
+  n_epoch: 30
+  continue_training: False
 data:
-  dir_path: ./data/pair_images
-  train_csv: ./data/train.csv
-  val_csv: ./data/val.csv
-  test_csv: ./data/test.csv
+  dir_path: ../../dataset/font_images_all
+  train_csv: ./data/train_pair_font_all.csv
+  val_csv: ./data/val_pair_font_all.csv
+  test_csv: ./data/test_pair_font_all.csv
