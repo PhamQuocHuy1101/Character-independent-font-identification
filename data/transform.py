@@ -1,3 +1,4 @@
+from statistics import mode
 import torch.nn as nn
 from torch.nn import functional
 from torchvision import transforms as T
@@ -18,7 +19,14 @@ class CropSize(nn.Module):
         right = delta_x - left
         top = int(delta_y / 2)
         bottom = delta_y - top
-        return functional.pad(image, (left, right, top, bottom), mode='replicate')
+        
+        if len(image.shape) == 4: # pytorch 1.7
+            out = functional.pad(image, [left, right, top, bottom], mode='replicate')
+        elif len(image.shape) == 3:
+            out = functional.pad(image.unsqueeze(0), [left, right, top, bottom], mode='replicate')    
+        out = out.squeeze(0)
+        
+        return out
 
 
     def __repr__(self) -> str:

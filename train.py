@@ -90,7 +90,7 @@ def train(cf):
                 best = val_loss
                 torch.save({
                     'model': model.state_dict(),
-                    'optimizer': model.state_dict(),
+                    'optimizer': optimizer.state_dict(),
                     'val_accuracy': best
                 }, cf.model['checkpoint'])
         

@@ -10,9 +10,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torch.distributed as dist
-from torch.multiprocessing as mp
-from torch.nn.Parallel import DistributedDataParallel as DDL
-from torch.utils.data.Distributed import DistributedSampler
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDL
+from torch.utils.data.distributed import DistributedSampler
 from tqdm.auto import tqdm
 
 
@@ -34,34 +34,28 @@ def set_random_seeds(random_seed=0):
     np.random.seed(random_seed)
     random.seed(random_seed)
 
+def set_process(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+    dist.init_process_group('nccl', rank = rank, world_size = world_size)
+
 def train(rank, cf):
     # init process
     if cf.n_gpu > 1:
-        dist.init_process_group('nccl', rank = rank, world_size = cf.world_size)
+        set_process(rank, cf.n_gpu)
 
     device = torch.device(rank)
     model = load_model(cf.model)
     model.to(device = device)
-
+     
     if cf.n_gpu > 1:
         model = DDL(model, device_ids = [rank], output_device = rank)
 
-    if cf.model['freeze']:
-        param_dict = [
-            {'params': model.head_params}
-        ]
-    else:
-        param_dict = [
-            {'params': model.backbone_params, 'lr': cf.optim['lr'] * 0.1},
-            {'params': model.head_params}
-        ]
-
-
-    optimizer = optim.Adam(params = param_dict, lr = cf.optim['lr'])
+    optimizer = optim.Adam(params = model.parameters(), lr = cf.optim['lr'])
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = cf.optim['step'], gamma=cf.optim['gamma'])
 
     train_df = pd.read_csv(cf.data['train_csv'])
-    train_data = FontDataset(cf.data['dir_path'], train_df.sample_1, train_df.sample_2, train_df.font_label, augmenter)
+    train_data = FontDataset(cf.data['dir_path'], train_df.sample_1, train_df.sample_2, train_df.labels, augmenter)
     train_sample = DistributedSampler(dataset = train_data) if cf.n_gpu > 1 else None
     train_loader = DataLoader(train_data, 
                                 batch_size = cf.optim['batch_size'], 
@@ -71,7 +65,7 @@ def train(rank, cf):
                                 drop_last=True)
     if rank == 0:
         val_df = pd.read_csv(cf.data['val_csv'])
-        val_data = FontDataset(cf.data['dir_path'], val_df.sample_1, val_df.sample_2, val_df.font_label, to_tensor)
+        val_data = FontDataset(cf.data['dir_path'], val_df.sample_1, val_df.sample_2, val_df.labels, to_tensor)
         val_loader = DataLoader(val_data, batch_size = 8, shuffle = False)
 
     # train
@@ -100,7 +94,7 @@ def train(rank, cf):
             optimizer.step()
 
             running_loss += loss.item()
-        
+            
         running_loss /= len(train_loader)
         if rank == 0:
             model.eval()
@@ -115,14 +109,15 @@ def train(rank, cf):
                     val_loss += criterion(outputs, labels).item()
                     y_predict = torch.softmax(outputs, dim = 1).argmax(dim = 1)
                     val_accuracy += torch.sum(y_predict == labels).item()
+                    
                 val_loss /= len(val_loader)
                 val_accuracy /= len(val_data)
-                if best == -1 or val_loss <= best:
+                if best == -1 or val_accuracy >= best:
                     print('Store')
-                    best = val_loss
+                    best = accuracy
                     torch.save({
                         'model': model.state_dict(),
-                        'optimizer': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
                         'val_accuracy': best
                     }, cf.model['checkpoint'])
             model.train()
@@ -151,4 +146,4 @@ if __name__ == '__main__':
     else:
         cf.n_gpu = len(args.device.split(','))
         cf.optim['batch_size'] = int(cf.optim['batch_size'] / cf.n_gpu)
-        mp.spawn(train, nrocs=cf.n_gpu, args=(cf))
+        mp.spawn(train, nprocs=cf.n_gpu, args=(cf, ))

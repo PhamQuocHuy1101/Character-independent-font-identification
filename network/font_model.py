@@ -36,8 +36,8 @@ class FontIdentification(nn.Module):
         self.__set_params()
 
     def __set_params(self):
-        self.backbone_params = [p for n, p in self.backbone.named_parameters() if 'backbone' in n]
-        self.head_params = [p for n, p in self.backbone.named_parameters() if 'backbone' not in n]
+        self.backbone_params = [p for n, p in self.named_parameters() if 'backbone' in n]
+        self.head_params = [p for n, p in self.named_parameters() if 'backbone' not in n]
 
     @abstractmethod
     def forward(self, X):

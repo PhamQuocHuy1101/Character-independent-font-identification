@@ -17,10 +17,12 @@ def regularization(param_dict, alpha):
 
 class Config():
     def __init__(self, cf):
-        self.__dict__.update(self.__read_config(cf.config))
+        cf = self.__read_config(cf)
         self.__dict__.update(cf)
     
     def __read_config(self, cf_file):
         with open(cf_file, 'r') as f:
             config = yaml.safe_load(f)
             return config
+    def get(self, key, d_value = None):
+        return self.__dict__.get(key, d_value)

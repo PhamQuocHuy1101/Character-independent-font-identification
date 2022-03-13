@@ -19,8 +19,10 @@ class FontDataset(Dataset):
         index = index % len(self.label)
         img_path_1 = os.path.join(self.image_root, self.image_1[index])
         img_path_2 = os.path.join(self.image_root, self.image_2[index])
-        
+         
         img_1 = Image.open(img_path_1).convert('RGB')
         img_2 = Image.open(img_path_2).convert('RGB')
-        return self.transform(img_1), self.transform(img_2), self.label[index]
+        t1 = self.transform(img_1)
+        t2 = self.transform(img_2)
+        return t1, t2, self.label[index]
 
