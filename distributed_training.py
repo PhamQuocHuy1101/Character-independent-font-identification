@@ -112,12 +112,12 @@ def train(rank, cf):
                     
                 val_loss /= len(val_loader)
                 val_accuracy /= len(val_data)
-                if best == -1 or val_loss <= best:
+                if best == -1 or val_accuracy >= best:
                     print('Store')
-                    best = val_loss
+                    best = accuracy
                     torch.save({
                         'model': model.state_dict(),
-                        'optimizer': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
                         'val_accuracy': best
                     }, cf.model['checkpoint'])
             model.train()
