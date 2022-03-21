@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import random
 import torch
+from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -71,6 +72,10 @@ def train(rank, cf):
     # train
     start = time.time()
 
+    if rank == 0:
+        os.makedirs(cf.log, exist_ok=True)
+        writer = SummaryWriter(cf.log)
+
     # class_weight = torch.tensor()
     criterion = nn.CrossEntropyLoss()
     best = -1
@@ -81,7 +86,8 @@ def train(rank, cf):
             print("Epoch ============================ {}".format(epoch))
             train_sample.set_epoch(epoch)
         
-        running_loss = 0.0
+        running_loss = []
+        running_accuracy = []
         for img_1, img_2, labels in tqdm(train_loader):
             img_1 = img_1.to(device)
             img_2 = img_2.to(device)
@@ -93,9 +99,13 @@ def train(rank, cf):
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
-            
-        running_loss /= len(train_loader)
+            running_loss.append(loss.item())
+            y_predict = torch.softmax(outputs, dim = 1).argmax(dim = 1)
+            running_accuracy.append(torch.sum(y_predict == labels).item())
+
+        running_loss = np.mean(train_loader)
+        running_accuracy = np.mean(running_accuracy)
+
         if rank == 0:
             model.eval()
             with torch.no_grad():
@@ -121,9 +131,14 @@ def train(rank, cf):
                         'val_accuracy': best
                     }, cf.model['checkpoint'])
             model.train()
-            print('Train loss: {}, val loss {}, val accuracy {}'.format(running_loss, val_loss, val_accuracy))
+
+            writer.add_scalars('loss', {'train': running_loss, 'val': val_loss}, epoch)
+            writer.add_scalars('accuracy', {'train': running_accuracy, 'val': val_accuracy}, epoch)
+
+            print('Train loss: {}, train acc {}, val loss {}, val acc {}'.format(running_loss, running_accuracy, val_loss, val_accuracy))
         
         scheduler.step()
+    writer.close()
 
     print("Store at: ", cf.model['checkpoint'])
     print("Process time: ", time.time() - start)
