@@ -19,3 +19,4 @@ data:
   train_csv: ./data/train_pair_font_all.csv
   val_csv: ./data/val_pair_font_all.csv
   test_csv: ./data/test_pair_font_all.csv
+log: ./checkpoint
