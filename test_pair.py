@@ -16,7 +16,7 @@ from data.transform import to_tensor
 from data.model_dataset import FontDataset
 
 
-def test_classify(cf, predict_out_file):
+def test_pair(cf, predict_out_file):
     device = cf.device
 
     model = load_model(cf.model)
@@ -63,4 +63,4 @@ if __name__ == '__main__':
     cf = utils.Config(args.config)
     cf.device = args.device
 
-    test_classify(cf)
+    test_pair(cf)

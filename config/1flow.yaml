@@ -6,7 +6,7 @@ model:
     n_hidden: 1028
     drop: 0.12
   freeze: False
-  checkpoint: ./checkpoint/model_512.pt
+  checkpoint: ./checkpoint/model_1flow_0.925.pt
 optim:
   lr: 0.001
   batch_size: 32
